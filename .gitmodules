@@ -1,0 +1,12 @@
+[submodule "nordic_app_two_playzone"]
+	path = nordic_app_two_playzone
+	url = https://github.com/YoraiLevi/nordic_app_two_playzone
+[submodule "nordic_app_one_playzone"]
+	path = nordic_app_one_playzone
+	url = https://github.com/YoraiLevi/nordic_app_one_playzone
+[submodule "nordic_packaging_utils_playzone"]
+	path = nordic_packaging_utils_playzone
+	url = https://github.com/YoraiLevi/nordic_packaging_utils_playzone
+[submodule "nordic_bl_secure_dfu_playzone"]
+	path = nordic_bl_secure_dfu_playzone
+	url = https://github.com/YoraiLevi/nordic_bl_secure_dfu_playzone
