@@ -8,6 +8,7 @@
       - [generating private key (`create_private_key.cmd`)](#generating-private-key-create_private_keycmd)
       - [generating public key for c usage (`create_public_key_c.cmd`)](#generating-public-key-for-c-usage-create_public_key_ccmd)
     - [Merging bootloader and an Application(+softdevice) images (`nrfutil settings`,`mergehex`)](#merging-bootloader-and-an-applicationsoftdevice-images-nrfutil-settingsmergehex)
+      - [generating bootloader settings page](#generating-bootloader-settings-page)
     - [Performing DFU](#performing-dfu)
       - [Generating update packages (`nrfutil pkg`)](#generating-update-packages-nrfutil-pkg)
       - [Uploading bootloader and flashing application through phone](#uploading-bootloader-and-flashing-application-through-phone)
@@ -27,7 +28,7 @@ from the root folder of this repo run(where this README.md is located):
 .\nordic_packaging_utils_playzone\create_private_key.cmd
 .\nordic_packaging_utils_playzone\create_public_key_c.cmd
 .\nordic_packaging_utils_playzone\generate_mergehex_image.cmd
-.\nordic_packaging_utils_playzone\upload_image.cmd mergedhex.hex
+<!-- .\nordic_packaging_utils_playzone\upload_image.cmd mergedhex.hex -->
 .\nordic_packaging_utils_playzone\generate_dfu_package.bat
 ```
 
@@ -82,6 +83,9 @@ nrfutil keys display --key pk --format code private.pem > dfu_public_key.c
 ```
 
 ### Merging bootloader and an Application(+softdevice) images (`nrfutil settings`,`mergehex`)
+
+#### [generating bootloader settings page](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fug_nrfutil%2FUG%2Fnrfutil%2Fnrfutil_settings_generate_display.html)
+The bootloader settings page is required on the device so that it can boot the application. Among other information, this page contains the CRC value and length of the bootable application (if present). This CRC value is calculated on boot-up to verify that a valid application is present.
 
 ```cmd
 echo "## Creating bootloader settings based on app.hex"
