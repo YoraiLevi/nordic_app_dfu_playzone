@@ -13,14 +13,15 @@
         * [Private and Public keys (`nrfutil keys`)](#private-and-public-keys-nrfutil-keys)
         * [flashing new bootloader](#flashing-new-bootloader)
         * [creating application update image and uploading from phone](#creating-application-update-image-and-uploading-from-phone)
-    * [Flashing everything at one time](#flashing-everything-at-one-time)
+          * [Generating update packages (`nrfutil pkg`)](#generating-update-packages-nrfutil-pkg)
+          * [using the wrong key](#using-the-wrong-key)
+    * [Flashing bootloader and application at the same time](#flashing-bootloader-and-application-at-the-same-time)
       * [Debugging](#debugging)
       * [generating private key (`create_private_key.cmd`)](#generating-private-key-create_private_keycmd)
       * [generating public key for c usage (`create_public_key_c.cmd`)](#generating-public-key-for-c-usage-create_public_key_ccmd)
     * [Merging bootloader and an Application(+softdevice) images (`nrfutil settings`,`mergehex`)](#merging-bootloader-and-an-applicationsoftdevice-images-nrfutil-settingsmergehex)
       * [generating bootloader settings page](#generating-bootloader-settings-page)
     * [Performing DFU](#performing-dfu)
-      * [Generating update packages (`nrfutil pkg`)](#generating-update-packages-nrfutil-pkg)
       * [Uploading bootloader and flashing application through phone](#uploading-bootloader-and-flashing-application-through-phone)
       * [Uploading bootloader and flashing application through PC](#uploading-bootloader-and-flashing-application-through-pc)
   * [References](#references)
@@ -197,6 +198,8 @@ using [nRF Toolbox for Bluetooth LE](https://play.google.com/store/apps/details?
 <details>
 <summary>logging output</summary>
 
+* note : the application does not output debug info for some reason.
+
 ```
 00> <info> app: Inside main
 00>
@@ -239,6 +242,8 @@ using [nRF Toolbox for Bluetooth LE](https://play.google.com/store/apps/details?
 
 ### Building the bootloader ourselves
 
+generate a private and public key and build the dfu-bootloader debug example
+
 ##### Private and Public keys (`nrfutil keys`)
 
 private key
@@ -261,9 +266,109 @@ nrfutil keys display --key pk --format code private.pem > dfu_public_key.c
 
 ##### flashing new bootloader
 
+```
+nrfjprog -e
+nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program dfu\pca10056_s140_ble_debug\ses\Output\Release\Exe\secure_bootloader_ble_s140_pca10056_debug.hex --verify
+nrfjprog --reset
+
+```
+
+<details>
+<summary>
+logging output
+</summary>
+
+```
+00> <info> app: Inside main
+00> 
+00> <debug> app: In nrf_bootloader_init
+00> 
+00> <debug> nrf_dfu_settings: Calling nrf_dfu_settings_init()...
+00> 
+00> <debug> nrf_dfu_flash: Initializing nrf_fstorage_nvmc backend.
+00> 
+00> <debug> nrf_dfu_settings: Using settings page.
+00> 
+00> <debug> nrf_dfu_settings: Copying forbidden parts from backup page.
+00> 
+00> <debug> nrf_dfu_settings: Destination settings are identical to source, write not needed. Skipping.
+00> 
+00> <info> nrf_dfu_settings: Backing up settings page to address 0xFE000.
+00> 
+00> <debug> nrf_dfu_settings: Destination settings are identical to source, write not needed. Skipping.
+00> 
+00> <debug> app: Enter nrf_bootloader_fw_activate
+00> 
+00> <info> app: No firmware to activate.
+00> 
+00> <info> app: Boot validation failed. No valid app to boot.
+00> 
+00> <debug> app: DFU mode because app is not valid.
+00> 
+00> <info> nrf_bootloader_wdt: WDT is not enabled
+00> 
+00> <debug> app: in weak nrf_dfu_init_user
+00> 
+00> <debug> app: timer_stop (0x20005984)
+00> 
+00> <debug> app: timer_activate (0x20005984)
+00> 
+00> <info> app: Entering DFU mode.
+00> 
+00> <debug> app: Initializing transports (found: 1)
+00> 
+00> <debug> nrf_dfu_ble: Initializing BLE DFU transport
+00> 
+00> <debug> nrf_dfu_ble: Setting up vector table: 0x000F1000
+00> 
+00> <debug> nrf_dfu_ble: Enabling SoftDevice.
+00> 
+00> <debug> nrf_dfu_ble: Configuring BLE stack.
+00> 
+00> <debug> nrf_dfu_ble: Enabling the BLE stack.
+00> 
+00> <debug> nrf_dfu_ble: No advertising name found
+00> 
+00> <debug> nrf_dfu_ble: Using default advertising name
+00> 
+00> <debug> nrf_dfu_ble: Advertising...
+00> 
+00> <debug> nrf_dfu_ble: BLE DFU transport initialized.
+00> 
+00> <debug> nrf_dfu_flash: Initializing nrf_fstorage_sd backend.
+00> 
+00> <debug> app: Enter main loop
+00> 
+```
+
+</details>
+
 ##### creating application update image and uploading from phone
 
-### Flashing everything at one time
+###### Generating update packages (`nrfutil pkg`)
+
+ The following combinations are supported (12/07/2021):  
+| 1 item                                          | 2 items                                              | 3 items                    |
+| ----------------------------------------------- | ---------------------------------------------------- | -------------------------- |
+| BL only: Supported✅.                            | BL + SD: Supported✅.                                 | BL + SD + APP: Supported✅. |
+| SD only: Supported✅ (SD of same Major Version). | BL + APP: Not Supported❌ (use two packages instead). |
+| APP only: Supported✅ (external or internal).    | SD + APP: Supported✅ (SD of same Major Version)      |
+
+```
+nrfutil pkg generate --key-file private.pem --hw-version 52 --debug-mode --application ble_app_blinky\pca10056\s140\ses\Output\Release\Exe\ble_app_blinky_pca10056_s140.hex --application-version-string "0.0.1" APP_package.zip
+
+```
+
+###### using the wrong key
+
+```
+nrfutil keys generate wrong_private.pem
+nrfutil pkg generate --key-file wrong_private.pem --hw-version 52 --debug-mode --application ble_app_blinky\pca10056\s140\ses\Output\Release\Exe\ble_app_blinky_pca10056_s140.hex --application-version-string "0.0.1" WRONG_APP_package.zip
+
+```
+
+### Flashing bootloader and application at the same time
 
 #### Debugging
 
@@ -293,15 +398,6 @@ echo.
 ```
 
 ### Performing DFU
-
-#### Generating update packages (`nrfutil pkg`)
-
- The following combinations are supported (12/07/2021):  
-| 1 item                                          | 2 items                                              | 3 items                    |
-| ----------------------------------------------- | ---------------------------------------------------- | -------------------------- |
-| BL only: Supported✅.                            | BL + SD: Supported✅.                                 | BL + SD + APP: Supported✅. |
-| SD only: Supported✅ (SD of same Major Version). | BL + APP: Not Supported❌ (use two packages instead). |
-| APP only: Supported✅ (external or internal).    | SD + APP: Supported✅ (SD of same Major Version)      |
 
 command prompt:
 
