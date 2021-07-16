@@ -1,28 +1,40 @@
 # nordic_app_dfu_playzone
-- [nordic_app_dfu_playzone](#nordic_app_dfu_playzone)
-  - [Summary](#summary)
-  - [Requirements](#requirements)
-  - [Flash Memory Layout](#flash-memory-layout)
-  - [Procedures](#procedures)
-    - [Private and Public keys (`nrfutil keys`)](#private-and-public-keys-nrfutil-keys)
-      - [generating private key (`create_private_key.cmd`)](#generating-private-key-create_private_keycmd)
-      - [generating public key for c usage (`create_public_key_c.cmd`)](#generating-public-key-for-c-usage-create_public_key_ccmd)
-    - [Merging bootloader and an Application(+softdevice) images (`nrfutil settings`,`mergehex`)](#merging-bootloader-and-an-applicationsoftdevice-images-nrfutil-settingsmergehex)
-      - [generating bootloader settings page](#generating-bootloader-settings-page)
-    - [Performing DFU](#performing-dfu)
-      - [Generating update packages (`nrfutil pkg`)](#generating-update-packages-nrfutil-pkg)
-      - [Uploading bootloader and flashing application through phone](#uploading-bootloader-and-flashing-application-through-phone)
-      - [Uploading bootloader and flashing application through PC](#uploading-bootloader-and-flashing-application-through-pc)
-  - [References](#references)
-    - [Documentation regarding nordic's DFU](#documentation-regarding-nordics-dfu)
 
+* [nordic_app_dfu_playzone](#nordic_app_dfu_playzone)
+  * [Summary](#summary)
+  * [Requirements](#requirements)
+  * [Flash Memory Layout](#flash-memory-layout)
+  * [Procedures](#procedures)
+    * [Using Examples](#using-examples)
+      * [running app (only)](#running-app-only)
+      * [running bootloader (only)](#running-bootloader-only)
+        * [uploading dfu-bootloader image and performing dfu from phone](#uploading-dfu-bootloader-image-and-performing-dfu-from-phone)
+    * [Building the bootloader ourselves](#building-the-bootloader-ourselves)
+        * [creating private-public key pair](#creating-private-public-key-pair)
+        * [flashing new bootloader](#flashing-new-bootloader)
+        * [creating application update image and uploading from phone](#creating-application-update-image-and-uploading-from-phone)
+    * [Flashing everything at one time](#flashing-everything-at-one-time)
+      * [Debugging](#debugging)
+    * [Private and Public keys (`nrfutil keys`)](#private-and-public-keys-nrfutil-keys)
+      * [generating private key (`create_private_key.cmd`)](#generating-private-key-create_private_keycmd)
+      * [generating public key for c usage (`create_public_key_c.cmd`)](#generating-public-key-for-c-usage-create_public_key_ccmd)
+    * [Merging bootloader and an Application(+softdevice) images (`nrfutil settings`,`mergehex`)](#merging-bootloader-and-an-applicationsoftdevice-images-nrfutil-settingsmergehex)
+      * [generating bootloader settings page](#generating-bootloader-settings-page)
+    * [Performing DFU](#performing-dfu)
+      * [Generating update packages (`nrfutil pkg`)](#generating-update-packages-nrfutil-pkg)
+      * [Uploading bootloader and flashing application through phone](#uploading-bootloader-and-flashing-application-through-phone)
+      * [Uploading bootloader and flashing application through PC](#uploading-bootloader-and-flashing-application-through-pc)
+  * [References](#references)
+    * [Documentation regarding nordic's DFU](#documentation-regarding-nordics-dfu)
 
 ## Summary
 
 from the root folder of this repo run(where this README.md is located):
+
 ```diff
 --create powershell scripts for the entire process?
 ```
+
 ```cmd
 .\compile.cmd
 .\nordic_packaging_utils_playzone\create_private_key.cmd
@@ -36,30 +48,22 @@ from the root folder of this repo run(where this README.md is located):
 
 1) `git clone --recurse-submodules https://github.com/YoraiLevi/nordic_app_dfu_playzone.git`
 2) SDK v16.0.0
-   * run `SDK_SYMLINK.ps1`  
+   * run `SDK_SYMLINK.ps1 "PathToSDK\nRF5SDK160098a08e2"`  
    the examples require the sdk to be located two folders up the git repo's folder
-3) Python 3.7.9 (as of 12/07/2021 3.9,3.10 do not work, untested on later versions of 3.7.*)
+
+3) Python
    * install with [chocolatey](https://chocolatey.org/install#:~:text=now%20run%20the%20following%20command%3A) (requires admin)  
-   `choco install python --version 3.7.9`
-   * install from python.org  
-    [Python 3.7.9](https://www.python.org/downloads/release/python-379/#:~:text=Changelog-,files,-Version)
+   `choco install python`
+   * install from [Python.org](https://www.python.org/downloads/#:~:text=download%20python)
    * upgrade pip for installing packages from pypi(`recommended`, **not as admin**):  
-   `py -3.7 -m pip install --upgrade pip`
-4) nrfutil globally on python 3.7.X (**don't** install python packages **as admin**)  
-   `py -3.7 -m pip install nrfutil`
-5) ~~[nRF Command Line Tools](https://www.nordicsemi.com/Products/Development-tools/nRF-Command-Line-Tools/Download#infotabs)~~
-    * ~~I don't remember but I think I had encountered an issue that forced me to reinstall this~~
-    * nrfjprog errors out always:
+   `py -m pip install --upgrade pip` -->
 
-      ```cmd
-      ERROR: The --family option given with the command (or the default from nrfjprog.ini)  
-      ERROR: does not match the device connected.
-      ```
+4) nrfutil globally (**don't** install python packages **as admin**)  
+   `py -m pip install nrfutil`
 
-6) J-Link + Segger embedded studio
-   * no clue atm
-7) nRF connect
-   * basically gui to upload and manage stuff meanwhile i have no clue how to upload through jlink manually
+5) [nRF Command Line Tools](https://www.nordicsemi.com/Products/Development-tools/nRF-Command-Line-Tools/Download#infotabs)
+6) [Embedded Studio for ARM](https://www.segger.com/downloads/embedded-studio/#ESforARM)
+7) [nRF connect](https://www.nordicsemi.com/Products/Development-tools/nRF-Connect-for-desktop)
 
 ## Flash Memory Layout
 
@@ -67,7 +71,187 @@ there is an xml file describing that. idk
 
 ## Procedures
 
+### Using Examples
+
+#### running app (only)
+
+```
+nrfjprog -f nrf52 --program ..\..\examples\peripheral\blinky\hex\blinky_pca10056_mbr.hex --recover --verify --reset
+```
+
+```
+nrfjprog -e
+nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program ..\..\examples\ble_peripheral\ble_app_blinky\hex\ble_app_blinky_pca10056_s140.hex --verify
+nrfjprog --reset
+
+```
+
+* with RTT debugging enabled: `#define NRF_LOG_BACKEND_RTT_ENABLED 1`
+
+```
+nrfjprog -e
+nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program ble_app_blinky\pca10056\s140\ses\Output\Release\Exe\ble_app_blinky_pca10056_s140.hex --verify
+nrfjprog --reset
+
+```
+
+![](assets/memory_after_flashing_blinky.png)
+
+<details>
+<summary>logging output</summary>
+
+```
+00> <info> app_timer: RTC: initialized.
+00> 
+00> <info> app: Blinky example started.
+00> 
+```
+
+</details>
+
+#### running bootloader (only)
+
+```
+nrfjprog -e
+nrfjprog -f nrf52 --program ..\..\examples\dfu\secure_bootloader\pca10056_s140_ble_debug\hex\secure_bootloader_ble_s140_pca10056_debug.hex --verify
+nrfjprog --reset
+
+```
+
+<details>
+<summary>logging output</summary>
+
+```
+00> <info> app: Inside main
+00> 
+00> <debug> app: In nrf_bootloader_init
+00> 
+00> <debug> nrf_dfu_settings: Calling nrf_dfu_settings_init()...
+00> 
+00> <debug> nrf_dfu_flash: Initializing nrf_fstorage_nvmc backend.
+00> 
+00> <debug> nrf_dfu_settings: Using settings page.
+00> 
+00> <debug> nrf_dfu_settings: Copying forbidden parts from backup page.
+00> 
+00> <debug> nrf_dfu_settings: Destination settings are identical to source, write not needed. Skipping.
+00> 
+00> <info> nrf_dfu_settings: Backing up settings page to address 0xFE000.
+00> 
+00> <debug> nrf_dfu_settings: Destination settings are identical to source, write not needed. Skipping.
+00> 
+00> <debug> app: Enter nrf_bootloader_fw_activate
+00> 
+00> <info> app: No firmware to activate.
+00> 
+00> <info> app: Boot validation failed. No valid app to boot.
+00> 
+00> <debug> app: DFU mode because app is not valid.
+00> 
+00> <info> nrf_bootloader_wdt: WDT is not enabled
+00> 
+00> <debug> app: in weak nrf_dfu_init_user
+00> 
+00> <debug> app: timer_stop (0x20005984)
+00> 
+00> <debug> app: timer_activate (0x20005984)
+00> 
+00> <info> app: Entering DFU mode.
+00> 
+00> <debug> app: Initializing transports (found: 1)
+00> 
+00> <debug> nrf_dfu_ble: Initializing BLE DFU transport
+00> 
+00> <debug> nrf_dfu_ble: Setting up vector table: 0x000F1000
+00> 
+00> <debug> nrf_dfu_ble: Enabling SoftDevice.
+00> 
+00> <debug> nrf_dfu_ble: Configuring BLE stack.
+00> 
+00> <debug> nrf_dfu_ble: Enabling the BLE stack.
+00> 
+00> <debug> nrf_dfu_ble: No advertising name found
+00> 
+00> <debug> nrf_dfu_ble: Using default advertising name
+00> 
+00> <debug> nrf_dfu_ble: Advertising...
+00> 
+00> <debug> nrf_dfu_ble: BLE DFU transport initialized.
+00> 
+00> <debug> nrf_dfu_flash: Initializing nrf_fstorage_sd backend.
+00> 
+00> <debug> app: Enter main loop
+00> 
+
+```
+
+</details>
+
+![](assets/memory_after_flashing_bootloader.png)
+
+##### uploading dfu-bootloader image and performing dfu from phone
+
+using [nRF Toolbox for Bluetooth LE](https://play.google.com/store/apps/details?id=no.nordicsemi.android.nrftoolbox&hl=en) upload `..\..\examples\dfu\secure_dfu_test_images\ble\nrf52840\hrs_application_s140.zip`
+
+<details>
+<summary>logging output</summary>
+
+```
+00> <info> app: Inside main
+00>
+00> <debug> app: In nrf_bootloader_init
+00>
+00> <debug> nrf_dfu_settings: Calling nrf_dfu_settings_init()...
+00>
+00> <debug> nrf_dfu_flash: Initializing nrf_fstorage_nvmc backend.
+00>
+00> <debug> nrf_dfu_settings: Using settings page.
+00>
+00> <debug> nrf_dfu_settings: Copying forbidden parts from backup page.
+00>
+00> <debug> nrf_dfu_settings: Destination settings are identical to source, write not needed. Skipping.
+00>
+00> <info> nrf_dfu_settings: Backing up settings page to address 0xFE000.
+00>
+00> <debug> nrf_dfu_settings: Destination settings are identical to source, write not needed. Skipping.
+00>
+00> <debug> app: Enter nrf_bootloader_fw_activate
+00>
+00> <info> app: No firmware to activate.
+00>
+00> <debug> app: App is valid
+00>
+00> <info> nrf_dfu_settings: Backing up settings page to address 0xFE000.
+00>
+00> <debug> nrf_dfu_settings: Destination settings are identical to source, write not needed. Skipping.
+00>
+00> <debug> app: Running nrf_bootloader_app_start with address: 0x00001000
+00>
+00> <debug> app: Disabling interrupts. NVIC->ICER[0]: 0x0
+00>
+
+```
+
+</details>
+
+![](assets/memory_after_dfu.png)
+
+### Building the bootloader ourselves
+
+##### creating private-public key pair
+
+##### flashing new bootloader
+
+##### creating application update image and uploading from phone
+
+### Flashing everything at one time
+
+#### Debugging
+
 ### Private and Public keys (`nrfutil keys`)
+
 the `nrfutil keys` utility creates private,public keys including c implementation:
 
 #### generating private key (`create_private_key.cmd`)
@@ -85,6 +269,7 @@ nrfutil keys display --key pk --format code private.pem > dfu_public_key.c
 ### Merging bootloader and an Application(+softdevice) images (`nrfutil settings`,`mergehex`)
 
 #### [generating bootloader settings page](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fug_nrfutil%2FUG%2Fnrfutil%2Fnrfutil_settings_generate_display.html)
+
 The bootloader settings page is required on the device so that it can boot the application. Among other information, this page contains the CRC value and length of the bootable application (if present). This CRC value is calculated on boot-up to verify that a valid application is present.
 
 ```cmd
@@ -101,11 +286,11 @@ echo.
 #### Generating update packages (`nrfutil pkg`)
 
  The following combinations are supported (12/07/2021):  
-|1 item|2 items|3 items|
-|--|--|--|
-BL only: Supported✅.|BL + SD: Supported✅.|BL + SD + APP: Supported✅.
-SD only: Supported✅ (SD of same Major Version).|BL + APP: Not Supported❌ (use two packages instead).
-APP only: Supported✅ (external or internal).|SD + APP: Supported✅ (SD of same Major Version)
+| 1 item                                          | 2 items                                              | 3 items                    |
+| ----------------------------------------------- | ---------------------------------------------------- | -------------------------- |
+| BL only: Supported✅.                            | BL + SD: Supported✅.                                 | BL + SD + APP: Supported✅. |
+| SD only: Supported✅ (SD of same Major Version). | BL + APP: Not Supported❌ (use two packages instead). |
+| APP only: Supported✅ (external or internal).    | SD + APP: Supported✅ (SD of same Major Version)      |
 
 command prompt:
 
@@ -153,9 +338,6 @@ One of : |s140_nrf52_6.0.0|0xA9|, |s140_nrf52_6.1.0|0xAE|, |s140_nrf52_6.1.1|0xB
 the cli doesn't work for me atm?  
 probably with nrf connect + ble dongle ??????  
 jtagging  
-
-
-
 
 ## References
 
