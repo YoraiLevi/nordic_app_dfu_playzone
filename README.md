@@ -10,12 +10,11 @@
       * [running bootloader (only)](#running-bootloader-only)
         * [uploading dfu-bootloader image and performing dfu from phone](#uploading-dfu-bootloader-image-and-performing-dfu-from-phone)
     * [Building the bootloader ourselves](#building-the-bootloader-ourselves)
-        * [creating private-public key pair](#creating-private-public-key-pair)
+        * [Private and Public keys (`nrfutil keys`)](#private-and-public-keys-nrfutil-keys)
         * [flashing new bootloader](#flashing-new-bootloader)
         * [creating application update image and uploading from phone](#creating-application-update-image-and-uploading-from-phone)
     * [Flashing everything at one time](#flashing-everything-at-one-time)
       * [Debugging](#debugging)
-    * [Private and Public keys (`nrfutil keys`)](#private-and-public-keys-nrfutil-keys)
       * [generating private key (`create_private_key.cmd`)](#generating-private-key-create_private_keycmd)
       * [generating public key for c usage (`create_public_key_c.cmd`)](#generating-public-key-for-c-usage-create_public_key_ccmd)
     * [Merging bootloader and an Application(+softdevice) images (`nrfutil settings`,`mergehex`)](#merging-bootloader-and-an-applicationsoftdevice-images-nrfutil-settingsmergehex)
@@ -193,7 +192,7 @@ nrfjprog --reset
 
 ##### uploading dfu-bootloader image and performing dfu from phone
 
-using [nRF Toolbox for Bluetooth LE](https://play.google.com/store/apps/details?id=no.nordicsemi.android.nrftoolbox&hl=en) upload `..\..\examples\dfu\secure_dfu_test_images\ble\nrf52840\hrs_application_s140.zip`
+using [nRF Toolbox for Bluetooth LE](https://play.google.com/store/apps/details?id=no.nordicsemi.android.nrftoolbox&hl=en)'s DFU upload `..\..\examples\dfu\secure_dfu_test_images\ble\nrf52840\hrs_application_s140.zip`
 
 <details>
 <summary>logging output</summary>
@@ -240,7 +239,25 @@ using [nRF Toolbox for Bluetooth LE](https://play.google.com/store/apps/details?
 
 ### Building the bootloader ourselves
 
-##### creating private-public key pair
+##### Private and Public keys (`nrfutil keys`)
+
+private key
+
+```
+nrfutil keys generate private.pem
+```
+
+public key for debug bootloader
+
+```
+nrfutil keys display --key pk --format dbgcode private.pem > dfu_public_key.c
+```
+
+public key for non-debug bootloader
+
+```
+nrfutil keys display --key pk --format code private.pem > dfu_public_key.c
+```
 
 ##### flashing new bootloader
 
@@ -249,8 +266,6 @@ using [nRF Toolbox for Bluetooth LE](https://play.google.com/store/apps/details?
 ### Flashing everything at one time
 
 #### Debugging
-
-### Private and Public keys (`nrfutil keys`)
 
 the `nrfutil keys` utility creates private,public keys including c implementation:
 
@@ -261,10 +276,6 @@ nrfutil keys generate private.pem
 ```
 
 #### generating public key for c usage (`create_public_key_c.cmd`)
-
-```
-nrfutil keys display --key pk --format code private.pem > dfu_public_key.c
-```
 
 ### Merging bootloader and an Application(+softdevice) images (`nrfutil settings`,`mergehex`)
 
