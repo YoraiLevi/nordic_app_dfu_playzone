@@ -47,30 +47,49 @@
 from the root folder of this repo run(where this README.md is located):
 
 ```ps1
-git clone --recurse-submodules https://github.com/YoraiLevi/nordic_app_dfu_playzone.git
+git clone https://github.com/YoraiLevi/nordic_app_dfu_playzone.git
 SDK_SYMLINK.ps1 "PathToSDK\nRF5SDK160098a08e2"
 nrfutil keys generate private.pem
 nrfutil keys display --key pk --format code private.pem > dfu_public_key.c
+```
+
 build ble_app_template!!!
+
+```
 explorer ble_app_template\pca10056\s140\ses\Output\Release\Exe
 ```
 
 ## Requirements
 
-1) `git clone --recurse-submodules https://github.com/YoraiLevi/nordic_app_dfu_playzone.git`
-2) SDK v16.0.0
+1)
+
+  ```
+   git clone https://github.com/YoraiLevi/nordic_app_dfu_playzone.git
+  ```
+
+2) [SDK v16.0.0](https://www.nordicsemi.com/Products/Development-software/nRF5-SDK/Download#infotabs)
    * run `SDK_SYMLINK.ps1 "PathToSDK\nRF5SDK160098a08e2"`  
    the examples require the sdk to be located two folders up the git repo's folder
 
-3) Python
+3) Python (Tested on 3.6.2 and 3.7.?; doesn't work on 3.9)
    * install with [chocolatey](https://chocolatey.org/install#:~:text=now%20run%20the%20following%20command%3A) (requires admin)  
-   `choco install python`
+
+   ```
+   choco install python --version 3.6.2
+   ```
+
    * install from [Python.org](https://www.python.org/downloads/#:~:text=download%20python)
    * upgrade pip for installing packages from pypi(`recommended`, **not as admin**):  
-   `py -m pip install --upgrade pip`
+
+   ```
+   py -3.6 -m pip install --upgrade pip
+   ```
 
 4) nrfutil globally (**don't** install python packages **as admin**)  
-   `py -m pip install nrfutil`
+
+   ```
+   py -3.6 -m pip install nrfutil
+   ```
 
 5) [nRF Command Line Tools](https://www.nordicsemi.com/Products/Development-tools/nRF-Command-Line-Tools/Download#infotabs)
 6) [Embedded Studio for ARM](https://www.segger.com/downloads/embedded-studio/#ESforARM)
@@ -78,7 +97,10 @@ explorer ble_app_template\pca10056\s140\ses\Output\Release\Exe
 
 ## Flash Memory Layout
 
-there is an xml file describing that. idk
+needs further investigation:
+
+1) flash_placement.xml
+2) #include "nrf_bootloader_info.h",BOOTLOADER_DFU_START
 
 ## Procedures
 
@@ -2539,15 +2561,15 @@ Segger Embedded Studio provides a mechanism to add more symbol (.elf) files. thi
     ![](assets/debug_symbol_files.png)
 3) additional load files && check erase all
 
-  ```
-  $(OutDir)/$(ProjectName)_bootloader_settings.hex
-  ```
+   ```
+   $(OutDir)/$(ProjectName)_bootloader_settings.hex
+   ```
+  
+   ```
+   $(ProjectDir)/../../../../dfu/pca10056_s140_ble_debug/ses/Output/Release/Exe/secure_bootloader_ble_s140_pca10056_debug.hex
+   ```
 
-  ```
-  $(ProjectDir)/../../../../dfu/pca10056_s140_ble_debug/ses/Output/Release/Exe/secure_bootloader_ble_s140_pca10056_debug.hex
-  ```
-
-    ![](assets/additional_file_load.png)
+   ![](assets/additional_file_load.png)
 
 ### Advanced Post-Build
 
