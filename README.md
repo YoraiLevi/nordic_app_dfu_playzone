@@ -2487,13 +2487,40 @@ nrfjprog --reset
 ```
 
 To boot to bootloader and able to perform a ble DFU:  
-1)
+
+1) add User Include Directories
+
+```
+../../../../../../components/libraries/bootloader
+```
+
+2) add header to the desired file
+
+```
+#include "nrf_bootloader_info.h"
+
+```
+
+3) define and call as desired. this can be confusing because in debug mode it can halt and not beacon, but it's in DFU
+
+```c
+/**@brief Function for DFU entry.
+ */
+void EnterDFU(void)
+{
+    sd_power_gpregret_clr(0,0xffffffff);
+    sd_power_gpregret_set(0, BOOTLOADER_DFU_START);
+    nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_DFU);
+}
+```
 
 #### Debugging multiple embedded projects at the same time
 
 Segger Embedded Studio provides a mechanism to add more symbol (.elf) files. this allows in turn to see the jumps between the bootloader and application.
 
+**watchout when copying for dangling `\n` they may cause error messages**  
 0) add project dependency for synced building
+
 1) post build command and always run - generate bootloader settings
 
     ```

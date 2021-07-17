@@ -1,4 +1,4 @@
-/**
+ /**
  * Copyright (c) 2014 - 2019, Nordic Semiconductor ASA
  *
  * All rights reserved.
@@ -77,6 +77,8 @@
 #include "nrf_ble_gatt.h"
 #include "nrf_ble_qwr.h"
 #include "nrf_pwr_mgmt.h"
+
+#include "nrf_bootloader_info.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -699,7 +701,14 @@ static void advertising_start(bool erase_bonds)
     }
 }
 
-
+/**@brief Function for DFU entry.
+ */
+void EnterDFU(void)
+{
+    sd_power_gpregret_clr(0,0xffffffff);
+    sd_power_gpregret_set(0, BOOTLOADER_DFU_START);
+    nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_DFU);
+}
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -726,6 +735,7 @@ int main(void)
     advertising_start(erase_bonds);
 
     // Enter main loop.
+    EnterDFU();
     for (;;)
     {
         idle_state_handle();

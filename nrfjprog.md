@@ -6,14 +6,17 @@
 > JLinkARM.dll version: 7.50a
 
 * [nrfjprog](#nrfjprog)
-  * [Information](#information)
-  * [Settings](#settings)
-  * [Reading and Writing](#reading-and-writing)
-  * [Reset](#reset)
-  * [CPU actions](#cpu-actions)
+  * [Flags and Arguments](#flags-and-arguments)
+    * [Information](#information)
+    * [Settings](#settings)
+    * [Reading and Writing](#reading-and-writing)
+    * [Reset](#reset)
+    * [CPU actions](#cpu-actions)
   * [Notes](#notes)
 
-## Information
+## Flags and Arguments
+
+### Information
 
 | flag            | summary                                                         |
 | --------------- | --------------------------------------------------------------- |
@@ -23,7 +26,7 @@
 | --com           | list of the serial port associated with all connected debuggers |
 | -i  --ids       | Displays the serial numbers of all the debuggers                |
 
-## Settings
+### Settings
 
 | flag                        | summary                                           |
 | --------------------------- | ------------------------------------------------- |
@@ -35,7 +38,7 @@
 | --ini \<file\>              | nrfjprog.ini                                      |
 | --qspiini \<file\>          | QspiDefault.ini                                   |
 
-## Reading and Writing
+### Reading and Writing
 
 | flag                                                                                                                                     | summary                                                                                                                                                           |
 | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -55,7 +58,7 @@
 | --readuicr \<file\>                                                                                                                      |                                                                                                                                                                   |
 | --readqspi \<file\>                                                                                                                      |                                                                                                                                                                   |
 
-## Reset
+### Reset
 
 | flag             | summary                                         |
 | ---------------- | ----------------------------------------------- |
@@ -64,7 +67,7 @@
 | -r  --reset      | Performs a soft reset                           |
 | -d  --debugreset | Performs a soft reset by the use of the CTRL-AP |
 
-## CPU actions
+### CPU actions
 
 | flag                                      | summary |
 | ----------------------------------------- | ------- |
@@ -74,8 +77,6 @@
 
 ## Notes
 
-* Memory after `nrfjprog -e`:
-![](assets/memory_clean.png)
-
-* Memory after `nRF Connect Programmer` erase:
-![](assets/memory_residue_after_bootloader_flash_and_erase.png)
+| Memory after `nrfjprog -e`   | Memory after `nRF Connect's Programmer` erase                   |
+| ---------------------------- | --------------------------------------------------------------- |
+| ![](assets/memory_clean.png) | ![](assets/memory_residue_after_bootloader_flash_and_erase.png) |
