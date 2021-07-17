@@ -33,7 +33,7 @@
         * [Using the buttonless example](#using-the-buttonless-example)
           * [comparing dfu'd program vs flashed program](#comparing-dfud-program-vs-flashed-program)
         * [Using minimal template app](#using-minimal-template-app)
-      * [Debugging](#debugging)
+      * [Debugging multiple embedded projects at the same time](#debugging-multiple-embedded-projects-at-the-same-time)
   * [References](#references)
     * [Documentation regarding nordic's DFU](#documentation-regarding-nordics-dfu)
 
@@ -2476,18 +2476,50 @@ the complete written flash is different in a few spots after line 16135 (:10`E00
 
 ##### Using minimal template app
 
-#### Debugging
-
-####
-
-```cmd
-echo "## Creating bootloader settings based on app.hex"
-nrfutil settings generate --family NRF52 --application app.hex --application-version 1 --bootloader-version 1 --bl-settings-version 1 settings.hex
-echo.
-echo "## Merging bootloader settings and app.hex into merged.hex"
-mergehex -m app.hex settings.hex -o merged.hex
-echo.
 ```
+nrfjprog -e
+nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfutil settings generate --family NRF52840 --application ble_app_template\pca10056\s140\ses\Output\Release\Exe\ble_app_template_pca10056_s140.hex --application-version-string "0.0.1" --bootloader-version 16 --bl-settings-version 2 --key-file private.pem settings.hex
+nrfjprog -f nrf52 --program ble_app_template\pca10056\s140\ses\Output\Release\Exe\ble_app_template_pca10056_s140.hex --verify
+nrfjprog -f nrf52 --program dfu\pca10056_s140_ble_debug\ses\Output\Release\Exe\secure_bootloader_ble_s140_pca10056_debug.hex --verify
+nrfjprog -f nrf52 --program settings.hex --verify
+nrfjprog --reset
+```
+
+To boot to bootloader and able to perform a ble DFU:  
+1)
+
+#### Debugging multiple embedded projects at the same time
+
+Segger Embedded Studio provides a mechanism to add more symbol (.elf) files. this allows in turn to see the jumps between the bootloader and application.
+
+0) add project dependency for synced building
+1) post build command and always run - generate bootloader settings
+
+    ```
+    nrfutil settings generate --family NRF52840 --application $(OutDir)/$(ProjectName).hex --application-version-string "0.0.1" --bootloader-version 16 --bl-settings-version 2 --key-file $(ProjectDir)/../../../../private.pem $(OutDir)/$(ProjectName)_bootloader_settings.hex
+    ```
+
+    ![](assets/post_build_command.png)
+
+2) additional symbol files
+
+    ```
+    $(ProjectDir)/../../../../dfu/pca10056_s140_ble_debug/ses/Output/Release/Exe/secure_bootloader_ble_s140_pca10056_debug.elf
+    ```
+
+![](assets/debug_symbol_files.png)
+3) additional load files && check erase all
+
+  ```
+  $(OutDir)/$(ProjectName)_bootloader_settings.hex
+  ```
+
+  ```
+  $(ProjectDir)/../../../../dfu/pca10056_s140_ble_debug/ses/Output/Release/Exe/secure_bootloader_ble_s140_pca10056_debug.hex
+  ```
+
+  ![](assets/additional_file_load.png)
 
 ## References
 
