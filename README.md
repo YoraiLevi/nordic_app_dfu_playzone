@@ -34,6 +34,11 @@
           * [comparing dfu'd program vs flashed program](#comparing-dfud-program-vs-flashed-program)
         * [Using minimal template app](#using-minimal-template-app)
       * [Debugging multiple embedded projects at the same time](#debugging-multiple-embedded-projects-at-the-same-time)
+    * [Advanced Post-Build](#advanced-post-build)
+      * [DFU packaging](#dfu-packaging)
+        * [assigning secret key path paramater](#assigning-secret-key-path-paramater)
+        * [autogenerating debug versioning labels](#autogenerating-debug-versioning-labels)
+          * [semantic versioning?](#semantic-versioning)
   * [References](#references)
     * [Documentation regarding nordic's DFU](#documentation-regarding-nordics-dfu)
 
@@ -41,17 +46,13 @@
 
 from the root folder of this repo run(where this README.md is located):
 
-```diff
---create powershell scripts for the entire process?
-```
-
-```cmd
-.\compile.cmd
-.\nordic_packaging_utils_playzone\create_private_key.cmd
-.\nordic_packaging_utils_playzone\create_public_key_c.cmd
-.\nordic_packaging_utils_playzone\generate_mergehex_image.cmd
-<!-- .\nordic_packaging_utils_playzone\upload_image.cmd mergedhex.hex -->
-.\nordic_packaging_utils_playzone\generate_dfu_package.bat
+```ps1
+git clone --recurse-submodules https://github.com/YoraiLevi/nordic_app_dfu_playzone.git
+SDK_SYMLINK.ps1 "PathToSDK\nRF5SDK160098a08e2"
+nrfutil keys generate private.pem
+nrfutil keys display --key pk --format code private.pem > dfu_public_key.c
+build ble_app_template!!!
+explorer ble_app_template\pca10056\s140\ses\Output\Release\Exe
 ```
 
 ## Requirements
@@ -66,14 +67,14 @@ from the root folder of this repo run(where this README.md is located):
    `choco install python`
    * install from [Python.org](https://www.python.org/downloads/#:~:text=download%20python)
    * upgrade pip for installing packages from pypi(`recommended`, **not as admin**):  
-   `py -m pip install --upgrade pip` -->
+   `py -m pip install --upgrade pip`
 
 4) nrfutil globally (**don't** install python packages **as admin**)  
    `py -m pip install nrfutil`
 
 5) [nRF Command Line Tools](https://www.nordicsemi.com/Products/Development-tools/nRF-Command-Line-Tools/Download#infotabs)
 6) [Embedded Studio for ARM](https://www.segger.com/downloads/embedded-studio/#ESforARM)
-7) [nRF connect](https://www.nordicsemi.com/Products/Development-tools/nRF-Connect-for-desktop)
+<!-- 7) [nRF connect](https://www.nordicsemi.com/Products/Development-tools/nRF-Connect-for-desktop) -->
 
 ## Flash Memory Layout
 
@@ -2535,7 +2536,7 @@ Segger Embedded Studio provides a mechanism to add more symbol (.elf) files. thi
     $(ProjectDir)/../../../../dfu/pca10056_s140_ble_debug/ses/Output/Release/Exe/secure_bootloader_ble_s140_pca10056_debug.elf
     ```
 
-![](assets/debug_symbol_files.png)
+    ![](assets/debug_symbol_files.png)
 3) additional load files && check erase all
 
   ```
@@ -2546,7 +2547,23 @@ Segger Embedded Studio provides a mechanism to add more symbol (.elf) files. thi
   $(ProjectDir)/../../../../dfu/pca10056_s140_ble_debug/ses/Output/Release/Exe/secure_bootloader_ble_s140_pca10056_debug.hex
   ```
 
-  ![](assets/additional_file_load.png)
+    ![](assets/additional_file_load.png)
+
+### Advanced Post-Build
+
+* this section should probably modify a different setting than the post-build command.
+
+#### DFU packaging
+
+```
+nrfutil settings generate --family NRF52840 --application $(OutDir)/$(ProjectName).hex --application-version-string "0.0.1" --bootloader-version 16 --bl-settings-version 2 --key-file $(ProjectDir)/../../../../private.pem $(OutDir)/$(ProjectName)_bootloader_settings.hex && nrfutil pkg generate --key-file $(ProjectDir)/../../../../private.pem --hw-version 52 --debug-mode --application $(OutDir)/$(ProjectName).hex --application-version-string "0.0.1" $(OutDir)/$(ProjectName)_APP_package.zip
+```
+
+##### assigning secret key path paramater
+
+##### autogenerating debug versioning labels
+
+###### semantic versioning?
 
 ## References
 
