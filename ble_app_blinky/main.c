@@ -481,6 +481,14 @@ static void ble_stack_init(void)
     NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
 }
 
+/**@brief Function for DFU entry.
+ */
+void EnterDFU(void)
+{
+    sd_power_gpregret_clr(0,0xffffffff);
+    sd_power_gpregret_set(0, BOOTLOADER_DFU_START);
+    nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_DFU);
+}
 
 /**@brief Function for handling events from the button handler module.
  *
@@ -495,6 +503,7 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
     {
         case LEDBUTTON_BUTTON:
             NRF_LOG_INFO("Send button state change.");
+            EnterDFU();
             err_code = ble_lbs_on_button_change(m_conn_handle, &m_lbs, button_action);
             if (err_code != NRF_SUCCESS &&
                 err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
@@ -561,14 +570,7 @@ static void idle_state_handle(void)
     }
 }
 
-/**@brief Function for DFU entry.
- */
-void EnterDFU(void)
-{
-    sd_power_gpregret_clr(0,0xffffffff);
-    sd_power_gpregret_set(0, BOOTLOADER_DFU_START);
-    nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_DFU);
-}
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -591,7 +593,6 @@ int main(void)
     advertising_start();
 
     // Enter main loop.
-    EnterDFU();
     for (;;)
     {
         idle_state_handle();
