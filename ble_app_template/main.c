@@ -709,6 +709,60 @@ void EnterDFU(void)
     sd_power_gpregret_set(0, BOOTLOADER_DFU_START);
     nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_DFU);
 }
+
+
+
+#define LEDBUTTON_BUTTON_PIN            BSP_BUTTON_0                        /**< Button that will write to the LED characteristic of the peer */
+#define BUTTON_DETECTION_DELAY          APP_TIMER_TICKS(50)                 /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
+
+/**@brief Function for handling events from the button handler module.
+ *
+ * @param[in] pin_no        The pin that the event applies to.
+ * @param[in] button_action The button action (press/release).
+ */
+static void button_event_handler(uint8_t pin_no, uint8_t button_action)
+{
+    ret_code_t err_code;
+
+    switch (pin_no)
+    {
+        case LEDBUTTON_BUTTON_PIN:
+            EnterDFU();
+            //err_code = ble_lbs_led_status_send(&m_ble_lbs_c, button_action);
+            //if (err_code != NRF_SUCCESS &&
+            //    err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
+            //    err_code != NRF_ERROR_INVALID_STATE)
+            //{
+            //    APP_ERROR_CHECK(err_code);
+            //}
+            //if (err_code == NRF_SUCCESS)
+            //{
+            //    NRF_LOG_INFO("LBS write LED state %d", button_action);
+            //}
+            //break;
+
+        default:
+            APP_ERROR_HANDLER(pin_no);
+            break;
+    }
+}
+/**@brief Function for initializing the button handler module.
+ */
+static void buttons_init(void)
+{
+    ret_code_t err_code;
+
+    //The array must be static because a pointer to it will be saved in the button handler module.
+    static app_button_cfg_t buttons[] =
+    {
+        {LEDBUTTON_BUTTON_PIN, false, BUTTON_PULL, button_event_handler}
+    };
+
+    err_code = app_button_init(buttons, ARRAY_SIZE(buttons),
+                               BUTTON_DETECTION_DELAY);
+    //APP_ERROR_CHECK(err_code);
+}
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -728,6 +782,9 @@ int main(void)
     conn_params_init();
     peer_manager_init();
 
+    buttons_init();
+
+
     // Start execution.
     NRF_LOG_INFO("Template example started.");
     application_timers_start();
@@ -735,7 +792,6 @@ int main(void)
     advertising_start(erase_bonds);
 
     // Enter main loop.
-    EnterDFU();
     for (;;)
     {
         idle_state_handle();
