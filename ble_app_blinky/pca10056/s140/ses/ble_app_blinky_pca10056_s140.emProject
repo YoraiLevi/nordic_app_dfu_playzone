@@ -38,7 +38,8 @@
       post_build_command_control="Always Run"
       project_dependencies="secure_bootloader_ble_s140_pca10056_debug(secure_bootloader_ble_s140_pca10056_debug)"
       project_directory=""
-      project_type="Executable" />
+      project_type="Executable"
+      target_loader_erase_all="Yes" />
     <folder Name="Segger Startup Files">
       <file file_name="$(StudioDir)/source/thumb_crt0.s" />
     </folder>
