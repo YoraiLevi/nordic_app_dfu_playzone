@@ -2,45 +2,45 @@
 
 ## Table of Contents
 
-* [nordic_app_dfu_playzone](#nordic_app_dfu_playzone)
-  * [Table of Contents](#table-of-contents)
-  * [Summary](#summary)
-  * [Requirements](#requirements)
-  * [Flash Memory Layout](#flash-memory-layout)
-  * [Procedures](#procedures)
-    * [Using Examples](#using-examples)
-      * [Running App (only)](#running-app-only)
-      * [running bootloader (only)](#running-bootloader-only)
-        * [uploading dfu-bootloader image and performing dfu from phone](#uploading-dfu-bootloader-image-and-performing-dfu-from-phone)
-    * [Building the bootloader ourselves](#building-the-bootloader-ourselves)
-        * [Private and Public keys (`nrfutil keys`)](#private-and-public-keys-nrfutil-keys)
-        * [flashing new bootloader](#flashing-new-bootloader)
-        * [creating application update image and uploading from phone](#creating-application-update-image-and-uploading-from-phone)
-          * [Generating update packages (`nrfutil pkg`)](#generating-update-packages-nrfutil-pkg)
-          * [BL only](#bl-only)
-          * [SD only](#sd-only)
-          * [APP only](#app-only)
-          * [BL + SD](#bl--sd)
-          * [SD + APP](#sd--app)
-          * [BL + SD + APP](#bl--sd--app)
-          * [using the wrong key](#using-the-wrong-key)
-    * [Flashing bootloader and application at the same time](#flashing-bootloader-and-application-at-the-same-time)
-      * [Generating bootloader settings file](#generating-bootloader-settings-file)
-        * [uploading all together](#uploading-all-together)
-        * [Using wrong bootloader settings version](#using-wrong-bootloader-settings-version)
-        * [Not uploading settings file](#not-uploading-settings-file)
-      * [entering DFU start from app](#entering-dfu-start-from-app)
-        * [Using the buttonless example](#using-the-buttonless-example)
-          * [comparing dfu'd program vs flashed program](#comparing-dfud-program-vs-flashed-program)
-        * [Using minimal template app](#using-minimal-template-app)
-      * [Debugging multiple embedded projects at the same time](#debugging-multiple-embedded-projects-at-the-same-time)
-    * [Advanced Post-Build](#advanced-post-build)
-      * [DFU packaging](#dfu-packaging)
-        * [assigning secret key path paramater](#assigning-secret-key-path-paramater)
-        * [autogenerating debug versioning labels](#autogenerating-debug-versioning-labels)
-          * [semantic versioning?](#semantic-versioning)
-  * [References](#references)
-    * [Documentation regarding nordic's DFU](#documentation-regarding-nordics-dfu)
+- [nordic_app_dfu_playzone](#nordic_app_dfu_playzone)
+  - [Table of Contents](#table-of-contents)
+  - [Summary](#summary)
+  - [Requirements](#requirements)
+  - [Flash Memory Layout](#flash-memory-layout)
+  - [Procedures](#procedures)
+    - [Using Examples](#using-examples)
+      - [Running App (only)](#running-app-only)
+      - [running bootloader (only)](#running-bootloader-only)
+        - [uploading dfu-bootloader image and performing dfu from phone](#uploading-dfu-bootloader-image-and-performing-dfu-from-phone)
+    - [Building the bootloader ourselves](#building-the-bootloader-ourselves)
+        - [Private and Public keys (`nrfutil keys`)](#private-and-public-keys-nrfutil-keys)
+        - [flashing new bootloader](#flashing-new-bootloader)
+        - [creating application update image and uploading from phone](#creating-application-update-image-and-uploading-from-phone)
+          - [Generating update packages (`nrfutil pkg`)](#generating-update-packages-nrfutil-pkg)
+          - [BL only](#bl-only)
+          - [SD only](#sd-only)
+          - [APP only](#app-only)
+          - [BL + SD](#bl--sd)
+          - [SD + APP](#sd--app)
+          - [BL + SD + APP](#bl--sd--app)
+          - [using the wrong key](#using-the-wrong-key)
+    - [Flashing bootloader and application at the same time](#flashing-bootloader-and-application-at-the-same-time)
+      - [Generating bootloader settings file](#generating-bootloader-settings-file)
+        - [uploading all together](#uploading-all-together)
+        - [Using wrong bootloader settings version](#using-wrong-bootloader-settings-version)
+        - [Not uploading settings file](#not-uploading-settings-file)
+      - [entering DFU start from app](#entering-dfu-start-from-app)
+        - [Using the buttonless example](#using-the-buttonless-example)
+          - [comparing dfu'd program vs flashed program](#comparing-dfud-program-vs-flashed-program)
+        - [Using minimal template app](#using-minimal-template-app)
+      - [Debugging multiple embedded projects at the same time](#debugging-multiple-embedded-projects-at-the-same-time)
+    - [Advanced Post-Build](#advanced-post-build)
+      - [DFU packaging](#dfu-packaging)
+        - [assigning secret key path paramater](#assigning-secret-key-path-paramater)
+        - [autogenerating debug versioning labels](#autogenerating-debug-versioning-labels)
+          - [semantic versioning?](#semantic-versioning)
+  - [References](#references)
+    - [Documentation regarding nordic's DFU](#documentation-regarding-nordics-dfu)
 
 ## Summary
 
@@ -62,14 +62,13 @@ explorer ble_app_template\pca10056\s140\ses\Output\Release\Exe
 ## Requirements
 
 1)
-
   ```
    git clone https://github.com/YoraiLevi/nordic_app_dfu_playzone.git
   ```
 
 2) [SDK v16.0.0](https://www.nordicsemi.com/Products/Development-software/nRF5-SDK/Download#infotabs)
-   * run `SDK_SYMLINK.ps1 "PathToSDK\nRF5SDK160098a08e2"`  
-   the examples require the sdk to be located two folders up the git repo's folder
+   * run `SDK_SYMLINK.ps1 "PathToSDK"`  
+   the examples require the sdk to be located under SDK in the root of this repo's folder (where README.md is located)
 
 3) Python (Tested on 3.6.2 and 3.7.?; doesn't work on 3.9)
    * install with [chocolatey](https://chocolatey.org/install#:~:text=now%20run%20the%20following%20command%3A) (requires admin)  
@@ -109,13 +108,13 @@ needs further investigation:
 #### Running App (only)
 
 ```
-nrfjprog -f nrf52 --program ..\..\examples\peripheral\blinky\hex\blinky_pca10056_mbr.hex --recover --verify --reset
+nrfjprog -f nrf52 --program SDK\examples\peripheral\blinky\hex\blinky_pca10056_mbr.hex --recover --verify --reset
 ```
 
 ```
 nrfjprog -e
-nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
-nrfjprog -f nrf52 --program ..\..\examples\ble_peripheral\ble_app_blinky\hex\ble_app_blinky_pca10056_s140.hex --verify
+nrfjprog -f nrf52 --program SDK\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program SDK\examples\ble_peripheral\ble_app_blinky\hex\ble_app_blinky_pca10056_s140.hex --verify
 nrfjprog --reset
 
 ```
@@ -124,7 +123,7 @@ nrfjprog --reset
 
 ```
 nrfjprog -e
-nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program SDK\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
 nrfjprog -f nrf52 --program ble_app_blinky\pca10056\s140\ses\Output\Release\Exe\ble_app_blinky_pca10056_s140.hex --verify
 nrfjprog --reset
 
@@ -148,7 +147,7 @@ nrfjprog --reset
 
 ```
 nrfjprog -e
-nrfjprog -f nrf52 --program ..\..\examples\dfu\secure_bootloader\pca10056_s140_ble_debug\hex\secure_bootloader_ble_s140_pca10056_debug.hex --verify
+nrfjprog -f nrf52 --program SDK\examples\dfu\secure_bootloader\pca10056_s140_ble_debug\hex\secure_bootloader_ble_s140_pca10056_debug.hex --verify
 nrfjprog --reset
 
 ```
@@ -226,7 +225,7 @@ nrfjprog --reset
 
 ##### uploading dfu-bootloader image and performing dfu from phone
 
-using [nRF Toolbox for Bluetooth LE](https://play.google.com/store/apps/details?id=no.nordicsemi.android.nrftoolbox&hl=en)'s DFU upload `..\..\examples\dfu\secure_dfu_test_images\ble\nrf52840\hrs_application_s140.zip`
+using [nRF Toolbox for Bluetooth LE](https://play.google.com/store/apps/details?id=no.nordicsemi.android.nrftoolbox&hl=en)'s DFU upload `SDK\examples\dfu\secure_dfu_test_images\ble\nrf52840\hrs_application_s140.zip`
 
 <details>
 <summary>logging output</summary>
@@ -301,7 +300,7 @@ nrfutil keys display --key pk --format code private.pem > dfu_public_key.c
 
 ```
 nrfjprog -e
-nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program SDK\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
 nrfjprog -f nrf52 --program dfu\pca10056_s140_ble_debug\ses\Output\Release\Exe\secure_bootloader_ble_s140_pca10056_debug.hex --verify
 nrfjprog --reset
 
@@ -2366,7 +2365,7 @@ Bootloader DFU Settings:
 
 ```
 nrfjprog -e
-nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program SDK\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
 nrfjprog -f nrf52 --program ble_app_blinky\pca10056\s140\ses\Output\Release\Exe\ble_app_blinky_pca10056_s140.hex --verify
 nrfjprog -f nrf52 --program dfu\pca10056_s140_ble_debug\ses\Output\Release\Exe\secure_bootloader_ble_s140_pca10056_debug.hex --verify
 nrfjprog -f nrf52 --program settings.hex --verify
@@ -2391,7 +2390,7 @@ nrfjprog --reset
 
 ```
 nrfjprog -e
-nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program SDK\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
 nrfjprog -f nrf52 --program ble_app_blinky\pca10056\s140\ses\Output\Release\Exe\ble_app_blinky_pca10056_s140.hex --verify
 nrfjprog -f nrf52 --program dfu\pca10056_s140_ble_debug\ses\Output\Release\Exe\secure_bootloader_ble_s140_pca10056_debug.hex --verify
 nrfjprog --reset
@@ -2475,7 +2474,7 @@ despite not seeing any dfu output we can determine it works by performing an upd
 
 ```
 nrfjprog -e
-nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program SDK\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
 nrfutil settings generate --family NRF52840 --application ble_app_buttonless_dfu\pca10056\s140\ses\Output\Release\Exe\ble_app_buttonless_dfu_pca10056_s140.hex --application-version-string "0.0.1" --bootloader-version 16 --bl-settings-version 2 --key-file private.pem settings.hex
 nrfjprog -f nrf52 --program ble_app_buttonless_dfu\pca10056\s140\ses\Output\Release\Exe\ble_app_buttonless_dfu_pca10056_s140.hex --verify
 nrfjprog -f nrf52 --program dfu\pca10056_s140_ble_debug\ses\Output\Release\Exe\secure_bootloader_ble_s140_pca10056_debug.hex --verify
@@ -2488,7 +2487,7 @@ nrfjprog --reset
 
 ```
 nrfjprog -e
-nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program SDK\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
 nrfjprog -f nrf52 --program dfu\pca10056_s140_ble_debug\ses\Output\Release\Exe\secure_bootloader_ble_s140_pca10056_debug.hex --verify
 nrfjprog --reset
 nrfutil pkg generate --key-file private.pem --hw-version 52 --debug-mode --application ble_app_buttonless_dfu\pca10056\s140\ses\Output\Release\Exe\ble_app_buttonless_dfu_pca10056_s140.hex --application-version-string "0.0.1" APP_package.zip
@@ -2501,7 +2500,7 @@ the complete written flash is different in a few spots after line 16135 (:10`E00
 
 ```
 nrfjprog -e
-nrfjprog -f nrf52 --program ..\..\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
+nrfjprog -f nrf52 --program SDK\components\softdevice\s140\hex\s140_nrf52_7.0.1_softdevice.hex --verify
 nrfutil settings generate --family NRF52840 --application ble_app_template\pca10056\s140\ses\Output\Release\Exe\ble_app_template_pca10056_s140.hex --application-version-string "0.0.1" --bootloader-version 16 --bl-settings-version 2 --key-file private.pem settings.hex
 nrfjprog -f nrf52 --program ble_app_template\pca10056\s140\ses\Output\Release\Exe\ble_app_template_pca10056_s140.hex --verify
 nrfjprog -f nrf52 --program dfu\pca10056_s140_ble_debug\ses\Output\Release\Exe\secure_bootloader_ble_s140_pca10056_debug.hex --verify
@@ -2514,12 +2513,14 @@ To boot to bootloader and able to perform a ble DFU:
 1) add User Include Directories
 
 ```
-../../../../../../components/libraries/bootloader
+$(SDK_DIR)/components/libraries/bootloader
 ```
 
 2) add header to the desired file
 
 ```
+#include "nrf_pwr_mgmt.h"
+#include "nrf_soc.h"
 #include "nrf_bootloader_info.h"
 
 ```

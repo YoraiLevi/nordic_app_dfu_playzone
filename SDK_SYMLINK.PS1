@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$Path,
-    [string]$Target = "../.."
+    [string]$Name = "SDK"
 )
 function Test-Admin {
     $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -50,5 +50,5 @@ catch {
 # Make sure ../../ exists
 if (Resolve-Path $Path) {
     # Make symlink to dirs
-    Get-ChildItem $Path -Directory | forEach { New-Item -Path $(Join-Path $Target $_.Name) -Target $_.FullName -Type SymbolicLink }
+    New-Item -ItemType SymbolicLink -Target $Path -Name $Name
 }
